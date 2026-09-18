@@ -7,15 +7,6 @@ from io import BytesIO
 from datetime import datetime
 
 # ==========================
-# Load Environment Variables
-# ==========================
-load_dotenv()
-
-API_KEY = os.getenv("GEMINI_API_KEY")
-
-client = genai.Client(api_key=API_KEY)
-
-# ==========================
 # Page Configuration
 # ==========================
 st.set_page_config(
@@ -23,6 +14,39 @@ st.set_page_config(
     page_icon="🤖",
     layout="wide"
 )
+
+# ==========================
+# Load Environment Variables
+# ==========================
+load_dotenv()
+
+# ==========================
+# Get Gemini API Key
+# ==========================
+API_KEY = None
+
+# First try Streamlit Cloud Secrets
+try:
+    API_KEY = st.secrets["GEMINI_API_KEY"]
+except Exception:
+    pass
+
+# If not found, try local .env
+if not API_KEY:
+    API_KEY = os.getenv("GEMINI_API_KEY")
+
+# Check API Key
+if not API_KEY:
+    st.error(
+        "Gemini API key is not configured. "
+        "Please add GEMINI_API_KEY in Streamlit Secrets."
+    )
+    st.stop()
+
+# ==========================
+# Create Gemini Client
+# ==========================
+client = genai.Client(api_key=API_KEY)
 
 # ==========================
 # Session State
@@ -35,9 +59,9 @@ if "generated_output" not in st.session_state:
 # ==========================
 st.title("🤖 AI Requirements Copilot")
 
-st.markdown("""
-Generate and Review Automotive Requirements using Gemini AI.
-""")
+st.markdown(
+    "Generate and Review Automotive Requirements using Gemini AI."
+)
 
 # ==========================
 # Mode Selection
@@ -114,6 +138,7 @@ IMPORTANT RULES:
 - Do NOT generate hyperlinks.
 - Do NOT generate localhost links.
 - Keep requirements atomic and testable.
+- Requirements must be clear, measurable, and verifiable.
 
 Generate the following sections.
 
@@ -122,7 +147,6 @@ Generate the following sections.
 ==================================================
 
 FR-001: Requirement
-
 FR-002: Requirement
 
 ==================================================
@@ -130,7 +154,6 @@ FR-002: Requirement
 ==================================================
 
 NFR-001: Requirement
-
 NFR-002: Requirement
 
 Cover:
@@ -144,7 +167,6 @@ Cover:
 ==================================================
 
 AC-001: Acceptance Criteria
-
 AC-002: Acceptance Criteria
 
 ==================================================
@@ -232,7 +254,7 @@ You are a Senior Automotive Requirements Engineer.
 
 Domain: {domain}
 
-Review the requirements.
+Review the requirements below.
 
 Check:
 
@@ -241,8 +263,9 @@ Check:
 3. Testability issues
 4. Missing acceptance criteria
 5. Duplicate requirements
-6. ASPICE requirement quality issues
+6. ASPICE requirement quality concerns
 7. Requirement completeness
+8. Missing measurable criteria
 
 For every issue provide:
 
